@@ -1,18 +1,28 @@
 
 import express from "express";
 import pool from "./db";
+import { errorHandler } from "./api/middlewares/error.middleware";
+import tasksRoutes from "./api/routes/tasks.routes";
+import authRoutes from "./api/routes/auth.routes";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
 
 const app = express();
 
 app.use(express.json());
 
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.use("/tasks", tasksRoutes);
+
+app.use("/auth", authRoutes);
+
 app.get("/health", (_req, res) => {
-  res.status(200).json({
+  res.json({
     status: "ok",
-    message: "Task Manager API funcionando"
+    message: "API funcionando correctamente",
   });
 });
-
 app.get("/health/db", async (_req, res) => {
   try {
     const result = await pool.query("SELECT NOW() AS fecha");
@@ -31,5 +41,7 @@ app.get("/health/db", async (_req, res) => {
     });
   }
 });
+
+app.use(errorHandler);
 
 export default app;
